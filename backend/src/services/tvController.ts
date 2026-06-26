@@ -56,6 +56,10 @@ export class TVController {
     this.request('ssap://com.webos.service.ime/sendEnterKey');
   }
 
+  public setVolume(volume: number) {
+    this.request('ssap://audio/setVolume', { volume });
+  }
+
   public request(uri: string, payload?: any): Promise<any> {
     return new Promise((resolve, reject) => {
       const tv = this.connection.getTV();

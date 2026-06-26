@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+body {
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
+}
+
 @theme {
   --color-background: #0a0a0a;
   --color-surface: #171717;

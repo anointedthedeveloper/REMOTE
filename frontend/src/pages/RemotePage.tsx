@@ -5,7 +5,9 @@ import { DPad } from '../components/DPad';
 import { MousePad } from '../components/MousePad';
 import { AppGrid } from '../components/AppGrid';
 import { KeyboardInput } from '../components/KeyboardInput';
-import { Power, Home, Settings, ArrowLeft, Volume2, VolumeX, Volume1, Play, Pause, Square, FastForward, Rewind, SkipBack, SkipForward, Menu, MousePointer2 } from 'lucide-react';
+import { VolumeSlider } from '../components/VolumeSlider';
+import { KeyboardForwarder } from '../components/KeyboardForwarder';
+import { Power, Home, Settings, ArrowLeft, VolumeX, Play, Pause, Square, FastForward, Rewind, MousePointer2 } from 'lucide-react';
 
 export function RemotePage() {
   const { socket } = useSocket();
@@ -73,45 +75,46 @@ export function RemotePage() {
           </div>
 
           {/* Volume and Channel */}
-          <div className="flex justify-between items-center px-4 bg-surface/30 rounded-3xl p-4 border border-white/5 backdrop-blur-sm">
-            <div className="flex flex-col gap-4">
-              <RemoteButton variant="circle" onClick={() => handleButton('VOLUMEUP')}>
-                <Volume2 size={20} />
-              </RemoteButton>
-              <span className="text-center text-xs font-semibold text-textMuted tracking-wider uppercase">VOL</span>
-              <RemoteButton variant="circle" onClick={() => handleButton('VOLUMEDOWN')}>
-                <Volume1 size={20} />
-              </RemoteButton>
-            </div>
+          <div className="flex flex-col gap-4">
+            <VolumeSlider />
             
-            <RemoteButton variant="circle" className="w-16 h-16 bg-surface border-white/10" onClick={() => handleButton('MUTE')}>
-              <VolumeX size={20} />
-            </RemoteButton>
+            <div className="flex justify-between items-center bg-surface/30 rounded-3xl p-4 border border-white/5 backdrop-blur-sm">
+              <div className="flex items-center gap-4">
+                <RemoteButton variant="circle" className="bg-surface hover:bg-white/10 border-white/10 shadow-[0_0_10px_rgba(255,255,255,0.05)] hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all" onClick={() => handleButton('MUTE')}>
+                  <VolumeX size={20} />
+                </RemoteButton>
+              </div>
 
-            <div className="flex flex-col gap-4">
-              <RemoteButton variant="circle" onClick={() => handleButton('CHANNELUP')}>
-                <ChevronUpIcon size={20} />
-              </RemoteButton>
-              <span className="text-center text-xs font-semibold text-textMuted tracking-wider uppercase">CH</span>
-              <RemoteButton variant="circle" onClick={() => handleButton('CHANNELDOWN')}>
-                <ChevronDownIcon size={20} />
-              </RemoteButton>
+              <div className="flex gap-4 items-center">
+                <span className="text-xs font-semibold text-textMuted tracking-wider uppercase">Channel</span>
+                <div className="flex bg-surface border border-white/10 rounded-full p-1 shadow-inner">
+                  <button onClick={() => handleButton('CHANNELDOWN')} className="w-12 h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors active:scale-95 text-white/80">
+                    <ChevronDownIcon size={20} />
+                  </button>
+                  <button onClick={() => handleButton('CHANNELUP')} className="w-12 h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors active:scale-95 text-white/80">
+                    <ChevronUpIcon size={20} />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           
           {/* Media Controls */}
-          <div className="grid grid-cols-3 gap-4">
-            <RemoteButton onClick={() => handleButton('PLAY')}><Play size={18} /></RemoteButton>
-            <RemoteButton onClick={() => handleButton('PAUSE')}><Pause size={18} /></RemoteButton>
-            <RemoteButton onClick={() => handleButton('STOP')}><Square size={18} /></RemoteButton>
+          <div className="grid grid-cols-3 gap-4 bg-surface/30 p-4 rounded-3xl border border-white/5 backdrop-blur-sm">
+            <RemoteButton className="hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all" onClick={() => handleButton('PLAY')}><Play size={18} /></RemoteButton>
+            <RemoteButton className="hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all" onClick={() => handleButton('PAUSE')}><Pause size={18} /></RemoteButton>
+            <RemoteButton className="hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all" onClick={() => handleButton('STOP')}><Square size={18} /></RemoteButton>
             
-            <RemoteButton onClick={() => handleButton('REWIND')}><Rewind size={18} /></RemoteButton>
-            <RemoteButton onClick={() => handleButton('FASTFORWARD')}><FastForward size={18} /></RemoteButton>
-            <RemoteButton onClick={() => handleButton('ENTER')}>OK</RemoteButton>
+            <RemoteButton className="hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all" onClick={() => handleButton('REWIND')}><Rewind size={18} /></RemoteButton>
+            <RemoteButton className="hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all" onClick={() => handleButton('ENTER')}>OK</RemoteButton>
+            <RemoteButton className="hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all" onClick={() => handleButton('FASTFORWARD')}><FastForward size={18} /></RemoteButton>
           </div>
 
           {/* Keyboard & Apps */}
-          <KeyboardInput />
+          <div className="flex flex-col gap-4">
+            <KeyboardInput />
+            <KeyboardForwarder />
+          </div>
           <div className="mt-4">
             <AppGrid />
           </div>

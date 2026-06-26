@@ -10,22 +10,23 @@ export function MousePad() {
     const pad = padRef.current;
     if (!pad) return;
 
-    const handleTouchStart = (e: TouchEvent) => {
-      e.preventDefault(); // Prevent scrolling while using touchpad
-      const touch = e.touches[0];
-      lastPos.current = { x: touch.clientX, y: touch.clientY };
+    const handleStart = (e: MouseEvent | TouchEvent) => {
+      e.preventDefault();
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      lastPos.current = { x: clientX, y: clientY };
     };
 
-    const handleTouchMove = (e: TouchEvent) => {
+    const handleMove = (e: MouseEvent | TouchEvent) => {
       e.preventDefault();
       if (!lastPos.current) return;
       
-      const touch = e.touches[0];
-      const dx = touch.clientX - lastPos.current.x;
-      const dy = touch.clientY - lastPos.current.y;
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+      const dx = clientX - lastPos.current.x;
+      const dy = clientY - lastPos.current.y;
       
-      // LG WebOS typically uses values around 1-30 for dx/dy
-      // A small multiplier helps with speed
       const sensitivity = 1.5;
       
       socket?.emit('tv:mouseMove', { 
@@ -33,10 +34,10 @@ export function MousePad() {
         dy: Math.round(dy * sensitivity) 
       });
       
-      lastPos.current = { x: touch.clientX, y: touch.clientY };
+      lastPos.current = { x: clientX, y: clientY };
     };
 
-    const handleTouchEnd = (e: TouchEvent) => {
+    const handleEnd = (e: MouseEvent | TouchEvent) => {
       e.preventDefault();
       lastPos.current = null;
     };
@@ -46,15 +47,38 @@ export function MousePad() {
       socket?.emit('tv:mouseClick');
     };
 
-    pad.addEventListener('touchstart', handleTouchStart, { passive: false });
-    pad.addEventListener('touchmove', handleTouchMove, { passive: false });
-    pad.addEventListener('touchend', handleTouchEnd, { passive: false });
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      // Scroll commands to TV
+      const sensitivity = 0.5;
+      socket?.emit('tv:mouseScroll', {
+        dx: Math.round(-e.deltaX * sensitivity),
+        dy: Math.round(-e.deltaY * sensitivity)
+      });
+    };
+
+    pad.addEventListener('touchstart', handleStart as any, { passive: false });
+    pad.addEventListener('touchmove', handleMove as any, { passive: false });
+    pad.addEventListener('touchend', handleEnd as any, { passive: false });
+    
+    pad.addEventListener('mousedown', handleStart as any, { passive: false });
+    pad.addEventListener('mousemove', (e) => {
+      if (e.buttons === 1) handleMove(e);
+    }, { passive: false });
+    pad.addEventListener('mouseup', handleEnd as any, { passive: false });
+    pad.addEventListener('mouseleave', handleEnd as any, { passive: false });
+    
+    pad.addEventListener('wheel', handleWheel, { passive: false });
     pad.addEventListener('click', handleClick);
 
     return () => {
-      pad.removeEventListener('touchstart', handleTouchStart);
-      pad.removeEventListener('touchmove', handleTouchMove);
-      pad.removeEventListener('touchend', handleTouchEnd);
+      pad.removeEventListener('touchstart', handleStart as any);
+      pad.removeEventListener('touchmove', handleMove as any);
+      pad.removeEventListener('touchend', handleEnd as any);
+      pad.removeEventListener('mousedown', handleStart as any);
+      pad.removeEventListener('mouseup', handleEnd as any);
+      pad.removeEventListener('mouseleave', handleEnd as any);
+      pad.removeEventListener('wheel', handleWheel);
       pad.removeEventListener('click', handleClick);
     };
   }, [socket]);

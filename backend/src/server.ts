@@ -83,6 +83,7 @@ io.on('connection', (socket) => {
   
   socket.on('tv:switchInput', (inputId: string) => tvController.switchInput(inputId));
   socket.on('tv:turnOff', () => tvController.turnOff());
+  socket.on('tv:setVolume', (volume: number) => tvController.setVolume(volume));
 
   // Queries
   socket.on('tv:getApps', async (callback) => {
