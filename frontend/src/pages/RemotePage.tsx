@@ -6,13 +6,13 @@ import { MousePad } from '../components/MousePad';
 import { AppGrid } from '../components/AppGrid';
 import { KeyboardInput } from '../components/KeyboardInput';
 import { VolumeSlider } from '../components/VolumeSlider';
-import { KeyboardForwarder } from '../components/KeyboardForwarder';
+import { SmartKeyboard } from '../components/SmartKeyboard';
 import {
   Power, Home, Settings, ArrowLeft, VolumeX, Tv2, LayoutGrid,
   MousePointer2, Keyboard, ChevronUp, ChevronDown,
   Play, Pause, FastForward, Rewind, Square,
   Subtitles, Maximize, BookOpen, List, MonitorOff,
-  Zap, Palette, Volume2, Radio,
+  Zap, Palette, Volume2, Radio, ExternalLink,
 } from 'lucide-react';
 
 type Tab = 'remote' | 'apps' | 'mouse' | 'settings';
@@ -168,6 +168,7 @@ export function RemotePage() {
                       { icon: <Home size={17} />, name: 'HOME', label: 'Home' },
                       { icon: <Settings size={17} />, name: 'MENU', label: 'Menu' },
                       { icon: <BookOpen size={17} />, name: 'INFO', label: 'Info' },
+                      { icon: <ExternalLink size={17} />, name: 'INPUT', label: 'Input' },
                       { icon: <List size={17} />, name: 'LIST', label: 'List' },
                     ].map(({ icon, name, label }) => (
                       <div key={name} className="flex flex-col items-center gap-1">
@@ -337,7 +338,7 @@ export function RemotePage() {
                     <Home size={15} className="mr-1" /> Home
                   </RemoteButton>
                   <div className="hidden md:block mt-4">
-                    <KeyboardForwarder />
+                    <SmartKeyboard />
                   </div>
                 </div>
               </div>
@@ -405,7 +406,7 @@ export function RemotePage() {
                 <Section title="Keyboard Input" icon={<Keyboard size={14} />}>
                   <KeyboardInput />
                   <div className="mt-2">
-                    <KeyboardForwarder />
+                    <SmartKeyboard />
                   </div>
                 </Section>
 
