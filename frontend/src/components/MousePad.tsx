@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { useSocket } from '../hooks/useSocket';
+import { MousePointer2 as MousePointer2Icon } from 'lucide-react';
 
 export function MousePad() {
   const { socket } = useSocket();
@@ -84,17 +85,18 @@ export function MousePad() {
   }, [socket]);
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full flex flex-col items-center gap-2 flex-1">
       <div 
         ref={padRef}
-        className="w-full max-w-sm h-64 bg-surface border border-white/10 rounded-2xl shadow-inner touch-none relative overflow-hidden"
+        className="w-full flex-1 min-h-[200px] bg-white/5 border border-white/10 rounded-2xl shadow-inner touch-none relative overflow-hidden cursor-none group"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-50 pointer-events-none" />
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <span className="text-white/20 font-medium tracking-widest text-sm uppercase">Touchpad</span>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
+          <MousePointer2Icon size={28} className="text-white/10" />
+          <span className="text-white/15 font-medium tracking-widest text-xs uppercase">Touchpad</span>
+          <span className="text-white/10 text-[10px]">Drag to move · Tap to click · Scroll to scroll</span>
         </div>
       </div>
-      <p className="text-xs text-textMuted mt-3 text-center">Swipe to move, tap to click</p>
     </div>
   );
 }

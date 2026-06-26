@@ -96,12 +96,25 @@ io.on('connection', (socket) => {
   socket.on('tv:enterKey', () => tvController.sendEnterKey());
 
   socket.on('tv:launchApp', (appId: string) => tvController.launchApp(appId));
-  
   socket.on('tv:switchInput', (inputId: string) => tvController.switchInput(inputId));
   socket.on('tv:turnOff', () => tvController.turnOff());
+  socket.on('tv:screenOff', () => tvController.screenOff());
   socket.on('tv:setVolume', (volume: number) => tvController.setVolume(volume));
+  socket.on('tv:volumeUp', () => tvController.volumeUp());
+  socket.on('tv:volumeDown', () => tvController.volumeDown());
+  socket.on('tv:setMute', (mute: boolean) => tvController.setMute(mute));
+  socket.on('tv:setPictureMode', (mode: string) => tvController.setPictureMode(mode));
+  socket.on('tv:setSoundMode', (mode: string) => tvController.setSoundMode(mode));
+  socket.on('tv:setBacklight', (val: number) => tvController.setBacklight(val));
+  socket.on('tv:toggleCaption', () => tvController.toggleCaption());
+  socket.on('tv:colorButton', (color: any) => tvController.colorButton(color));
+  socket.on('tv:openGuide', () => tvController.openGuide());
+  socket.on('tv:cycleAspectRatio', () => tvController.cycleAspectRatio());
+  socket.on('tv:openChannelMenu', () => tvController.openChannelMenu());
+  socket.on('tv:toggle3D', () => tvController.toggle3D());
+  socket.on('tv:showToast', (msg: string) => tvController.showToast(msg));
+  socket.on('tv:setPointerVisible', (v: boolean) => tvController.setPointerVisibility(v));
 
-  // Queries
   socket.on('tv:getApps', async (callback) => {
     const apps = await tvController.getInstalledApps();
     callback(apps);
@@ -110,6 +123,21 @@ io.on('connection', (socket) => {
   socket.on('tv:getInputs', async (callback) => {
     const inputs = await tvController.getInputs();
     callback(inputs);
+  });
+
+  socket.on('tv:getPictureSettings', async (callback) => {
+    const s = await tvController.getPictureSettings();
+    callback(s);
+  });
+
+  socket.on('tv:getSoundSettings', async (callback) => {
+    const s = await tvController.getSoundSettings();
+    callback(s);
+  });
+
+  socket.on('tv:getCurrentChannel', async (callback) => {
+    const ch = await tvController.getCurrentChannel();
+    callback(ch);
   });
 });
 

@@ -12,21 +12,16 @@ export class TVController {
     if (socket) {
       socket.send(cmd);
     } else {
-      console.warn('Pointer socket not ready yet, queuing command:', cmd.trim().split('\n')[0]);
-      // If we really want, we could queue it. For now, let's just attempt to get it.
       const tv = this.connection.getTV();
       if (tv && tv.connection) {
         tv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (err: any, sock: any) => {
           if (err) {
             console.error('Fallback getSocket error:', err);
           } else {
-            console.log('Fallback pointer socket established');
             this.connection.pointerSocket = sock;
             sock.send(cmd);
           }
         });
-      } else {
-        console.warn('TV connection not active, cannot get pointer socket');
       }
     }
   }
@@ -48,16 +43,11 @@ export class TVController {
   }
 
   public sendKeyboardInput(text: string) {
-    // Some LG TVs accept this payload structure
     this.request('ssap://com.webos.service.ime/insertText', { text, replace: 0 });
   }
 
   public sendEnterKey() {
     this.request('ssap://com.webos.service.ime/sendEnterKey');
-  }
-
-  public setVolume(volume: number) {
-    this.request('ssap://audio/setVolume', { volume });
   }
 
   public request(uri: string, payload?: any): Promise<any> {
@@ -78,6 +68,24 @@ export class TVController {
     });
   }
 
+  // ─── Volume ───────────────────────────────────────────────
+  public setVolume(volume: number) {
+    this.request('ssap://audio/setVolume', { volume: Math.max(0, Math.min(100, volume)) });
+  }
+
+  public volumeUp() {
+    this.request('ssap://audio/volumeUp');
+  }
+
+  public volumeDown() {
+    this.request('ssap://audio/volumeDown');
+  }
+
+  public setMute(mute: boolean) {
+    this.request('ssap://audio/setMute', { mute });
+  }
+
+  // ─── Apps ─────────────────────────────────────────────────
   public launchApp(appId: string) {
     this.request('ssap://system.launcher/launch', { id: appId });
   }
@@ -85,12 +93,18 @@ export class TVController {
   public async getInstalledApps(): Promise<any[]> {
     try {
       const res = await this.request('ssap://com.webos.applicationManager/listLaunchPoints');
-      return res.launchPoints || [];
+      const apps = res.launchPoints || [];
+      // Sort alphabetically, filter out system apps without titles
+      return apps
+        .filter((a: any) => a.title && a.title.trim())
+        .sort((a: any, b: any) => a.title.localeCompare(b.title));
     } catch (e) {
+      console.error('getInstalledApps error:', e);
       return [];
     }
   }
 
+  // ─── Inputs ───────────────────────────────────────────────
   public async getInputs(): Promise<any[]> {
     try {
       const res = await this.request('ssap://tv/getExternalInputList');
@@ -104,7 +118,126 @@ export class TVController {
     this.request('ssap://tv/switchInput', { inputId });
   }
 
-  public async turnOff() {
+  // ─── Power ────────────────────────────────────────────────
+  public turnOff() {
     this.request('ssap://system/turnOff');
+  }
+
+  // ─── Screen ───────────────────────────────────────────────
+  public screenOff() {
+    this.request('ssap://com.webos.service.tvpower/power/turnOffScreen', { standbyMode: 'active' });
+  }
+
+  // ─── Picture Settings ─────────────────────────────────────
+  public async getPictureSettings(): Promise<any> {
+    try {
+      const res = await this.request('ssap://settings/getSystemSettings', {
+        category: 'picture',
+        keys: ['pictureMode', 'backlight', 'brightness', 'contrast', 'sharpness', 'color']
+      });
+      return res.settings || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  public setPictureMode(mode: string) {
+    this.request('ssap://settings/setSystemSettings', {
+      category: 'picture',
+      settings: { pictureMode: mode }
+    });
+  }
+
+  public setBacklight(value: number) {
+    this.request('ssap://settings/setSystemSettings', {
+      category: 'picture',
+      settings: { backlight: String(value) }
+    });
+  }
+
+  // ─── Sound Settings ───────────────────────────────────────
+  public async getSoundSettings(): Promise<any> {
+    try {
+      const res = await this.request('ssap://settings/getSystemSettings', {
+        category: 'sound',
+        keys: ['soundMode']
+      });
+      return res.settings || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  public setSoundMode(mode: string) {
+    this.request('ssap://settings/setSystemSettings', {
+      category: 'sound',
+      settings: { soundMode: mode }
+    });
+  }
+
+  // ─── Caption / Subtitles ──────────────────────────────────
+  public toggleCaption() {
+    // Toggle via CC button
+    this.sendButton('CC');
+  }
+
+  // ─── Channel / TV Info ────────────────────────────────────
+  public async getCurrentChannel(): Promise<any> {
+    try {
+      return await this.request('ssap://tv/getCurrentChannel');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  public openChannelMenu() {
+    this.sendButton('LIST');
+  }
+
+  // ─── Media Info ───────────────────────────────────────────
+  public async getMediaInfo(): Promise<any> {
+    try {
+      return await this.request('ssap://media.controls/getMediaMetaData');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  // ─── 3D ───────────────────────────────────────────────────
+  public toggle3D() {
+    this.sendButton('3D_MODE');
+  }
+
+  // ─── Color buttons ────────────────────────────────────────
+  public colorButton(color: 'RED' | 'GREEN' | 'YELLOW' | 'BLUE') {
+    this.sendButton(color);
+  }
+
+  // ─── TV Guide ─────────────────────────────────────────────
+  public openGuide() {
+    this.sendButton('GUIDE');
+  }
+
+  // ─── Aspect Ratio ─────────────────────────────────────────
+  public cycleAspectRatio() {
+    this.sendButton('RATIO');
+  }
+
+  // ─── Energy Saving ────────────────────────────────────────
+  public openEnergySaving() {
+    this.request('ssap://settings/getSystemSettings', {
+      category: 'picture',
+      keys: ['energySaving']
+    });
+  }
+
+  // ─── Notifications ────────────────────────────────────────
+  public showToast(message: string) {
+    this.request('ssap://system.notifications/createToast', { message });
+  }
+
+  // ─── Magic Remote / Pointer sensitivity ───────────────────
+  public setPointerVisibility(visible: boolean) {
+    this.request('ssap://com.webos.service.networkinput/setCurrentMousePointerVisible', { visible });
   }
 }

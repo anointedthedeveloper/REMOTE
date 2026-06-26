@@ -132,10 +132,10 @@ export class TVConnection {
   }
 
   private subscribeToUpdates() {
-    // Subscribe to volume changes
+    // Subscribe to volume changes — emit every update so frontend stays in sync
     this.tv.subscribe('ssap://audio/getVolume', (err: any, res: any) => {
-      if (!err && res.changed) {
-        this.io.emit('tv:volume', res);
+      if (!err && res) {
+        this.io.emit('tv:volume', { volume: res.volume, muted: res.muted });
       }
     });
 
