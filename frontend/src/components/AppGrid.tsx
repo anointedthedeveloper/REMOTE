@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSocket } from '../hooks/useSocket';
-import { LayoutGrid, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+
+const BACKEND_URL = `http://${window.location.hostname}:3001`;
 
 export function AppGrid() {
   const { socket } = useSocket();
@@ -21,43 +23,69 @@ export function AppGrid() {
     socket?.emit('tv:launchApp', appId);
   };
 
+  const getIconUrl = (app: any): string | null => {
+    // LG TV provides icon paths that can be relative or absolute URLs
+    const icon = app.icon || app.largeIcon || app.mediumLargeIcon;
+    if (!icon) return null;
+    // If it's already a full http URL, proxy it through our backend
+    if (icon.startsWith('http')) {
+      return `${BACKEND_URL}/api/tv-icon?url=${encodeURIComponent(icon)}`;
+    }
+    return null;
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="animate-spin text-textMuted" />
+      <div className="flex flex-col items-center justify-center py-12 gap-3">
+        <Loader2 className="animate-spin text-primary" size={28} />
+        <p className="text-xs text-textMuted">Loading apps...</p>
+      </div>
+    );
+  }
+
+  if (apps.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-2">
+        <p className="text-sm text-textMuted">No apps found</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-surface/30 border border-white/5 p-4 rounded-3xl backdrop-blur-sm">
-      <div className="flex items-center gap-2 mb-4 px-2">
-        <LayoutGrid size={18} className="text-primary" />
-        <h3 className="font-semibold text-white/90">Installed Apps</h3>
-      </div>
-      
-      <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 max-h-64 overflow-y-auto scrollbar-hide pb-2 px-1">
-        {apps.map((app) => (
+    <div className="grid grid-cols-4 gap-3 pb-2 px-1">
+      {apps.map((app) => {
+        const iconUrl = getIconUrl(app);
+        return (
           <button
             key={app.id}
             onClick={() => launchApp(app.id)}
             className="flex flex-col items-center gap-2 transition-transform hover:scale-105 active:scale-95 group"
           >
-            <div className="w-14 h-14 rounded-2xl bg-surface border border-white/10 overflow-hidden shadow-sm flex items-center justify-center p-1 group-hover:border-primary/50 group-hover:shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.3)] transition-all">
-              {app.icon ? (
-                <div className="w-full h-full bg-white/5 rounded-xl flex items-center justify-center text-[10px] text-center font-bold text-white/50 break-words leading-tight px-1">
-                  {app.title.substring(0, 10)}
-                </div>
+            <div className="w-14 h-14 rounded-2xl bg-surface border border-white/10 overflow-hidden shadow-sm flex items-center justify-center group-hover:border-primary/50 group-hover:shadow-[0_0_12px_rgba(139,92,246,0.4)] transition-all">
+              {iconUrl ? (
+                <img
+                  src={iconUrl}
+                  alt={app.title}
+                  className="w-full h-full object-cover rounded-2xl"
+                  onError={(e) => {
+                    // On error, show text fallback
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    const parent = (e.target as HTMLImageElement).parentElement;
+                    if (parent) {
+                      parent.innerHTML = `<span class="text-[10px] font-bold text-white/50 px-1 text-center break-words leading-tight">${app.title.substring(0, 8)}</span>`;
+                    }
+                  }}
+                />
               ) : (
-                <div className="w-full h-full bg-white/5 rounded-xl flex items-center justify-center text-xs font-bold text-white/50">
-                  {app.title.substring(0, 3)}
-                </div>
+                <span className="text-[10px] font-bold text-white/50 px-1 text-center break-words leading-tight">
+                  {app.title.substring(0, 8)}
+                </span>
               )}
             </div>
-            <span className="text-[10px] text-textMuted group-hover:text-white transition-colors truncate w-full text-center">{app.title}</span>
+            <span className="text-[10px] text-textMuted group-hover:text-white/80 transition-colors truncate w-full text-center">{app.title}</span>
           </button>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }

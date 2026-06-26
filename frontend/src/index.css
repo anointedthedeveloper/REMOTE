@@ -1,16 +1,21 @@
 @import "tailwindcss";
 
+html, body, #root {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
 body {
-  overscroll-behavior-y: none;
-  touch-action: pan-y;
+  overscroll-behavior: none;
 }
 
 @theme {
   --color-background: #0a0a0a;
-  --color-surface: #171717;
-  --color-primary: #e50914;
+  --color-surface: #1a1a1a;
+  --color-primary: #8b5cf6;
   --color-textMain: #ffffff;
-  --color-textMuted: #a3a3a3;
+  --color-textMuted: #737373;
 }
 
 @layer base {
@@ -41,4 +46,18 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* iOS safe-area bottom padding */
+.pb-safe {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
 }

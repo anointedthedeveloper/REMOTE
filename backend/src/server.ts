@@ -55,6 +55,22 @@ app.get('/api/qr', async (req, res) => {
   }
 });
 
+// Proxy for LG TV app icons (avoids CORS issues)
+app.get('/api/tv-icon', async (req, res) => {
+  const iconUrl = req.query.url as string;
+  if (!iconUrl) return res.status(400).send('No URL');
+  try {
+    const response = await fetch(iconUrl, { signal: AbortSignal.timeout(3000) });
+    if (!response.ok) return res.status(404).send('Not found');
+    const buf = Buffer.from(await response.arrayBuffer());
+    res.setHeader('Content-Type', response.headers.get('content-type') || 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(buf);
+  } catch {
+    res.status(500).send('Failed to fetch icon');
+  }
+});
+
 // Initialize Services
 const tvConnection = new TVConnection(io);
 const tvController = new TVController(tvConnection);
